@@ -105,3 +105,91 @@ def dispatch_graph(conn):
     ax.spines[["top", "right"]].set_visible(False)
     plt.tight_layout()
     plt.show()
+
+
+# --- GUI HELPERS ---
+
+def get_sales_summary(conn):
+    """GUI helper: get sales summary stats as a dict."""
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT SUM(QTY) FROM AD_Order")
+        total_ordered = cur.fetchone()[0] or 0
+
+        cur.execute("SELECT Hospital, State FROM AD_Order")
+        ordered_hospitals = cur.fetchall()
+
+        cur.execute("SELECT SUM(QTY) FROM Dispatch")
+        total_dispatched = cur.fetchone()[0] or 0
+
+        cur.execute(
+            "SELECT SUM(a.Price * b.QTY) "
+            "FROM AD_Vaccine a JOIN Dispatch b ON a.V_ID = b.Vaccine_ID"
+        )
+        revenue = cur.fetchone()[0] or 0
+
+        cur.execute(
+            "SELECT (a.Price - a.Cost) * b.QTY, a.V_Name "
+            "FROM AD_Vaccine a JOIN Dispatch b ON a.V_ID = b.Vaccine_ID"
+        )
+        profits = cur.fetchall()
+
+        return {
+            "total_ordered": total_ordered,
+            "ordered_hospitals": ordered_hospitals,
+            "total_dispatched": total_dispatched,
+            "revenue": revenue,
+            "profits": profits
+        }
+    except Exception:
+        return None
+    finally:
+        cur.close()
+
+
+def get_pending_report_data(conn):
+    """GUI helper: get detailed pending orders data."""
+    cur = conn.cursor(dictionary=True)
+    try:
+        cur.execute("""
+            SELECT o.*, v.V_Name, v.Manufacturer, v.Price, v.Cost
+            FROM AD_Order o
+            JOIN AD_Vaccine v ON o.vaccine_ID = v.V_ID
+            WHERE o.O_ID NOT IN (SELECT Order_ID FROM Dispatch)
+        """)
+        results = cur.fetchall()
+        for r in results:
+            r['potential_profit'] = (r['Price'] - r['Cost']) * r['QTY']
+        return results
+    except Exception:
+        return []
+    finally:
+        cur.close()
+
+
+def get_dashboard_stats(conn):
+    """GUI helper: get 4 key stats for the dashboard."""
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT COUNT(*) FROM AD_Vaccine")
+        v_count = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM AD_Order")
+        o_count = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM Dispatch")
+        d_count = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM AD_Order WHERE O_ID NOT IN (SELECT Order_ID FROM Dispatch)")
+        p_count = cur.fetchone()[0]
+
+        return {
+            "vaccines": v_count,
+            "orders": o_count,
+            "dispatched": d_count,
+            "pending": p_count
+        }
+    except Exception:
+        return {"vaccines": 0, "orders": 0, "dispatched": 0, "pending": 0}
+    finally:
+        cur.close()
