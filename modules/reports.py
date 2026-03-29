@@ -78,7 +78,7 @@ def pending_report(conn):
     cur.close()
 
 
-def dispatch_graph(conn):
+def dispatch_graph(conn, theme="Light"):
     """Bar chart of total vaccines dispatched per vaccine."""
     cur = conn.cursor()
     cur.execute(
@@ -96,13 +96,26 @@ def dispatch_graph(conn):
     names = [r[0] for r in results]
     totals = [r[1] for r in results]
 
+    # Apply Theme
+    if theme == "Dark":
+        plt.style.use('dark_background')
+        bar_color = "#7aa2f7" # Modern blue for dark mode
+        edge_color = "#1a1b26"
+    else:
+        plt.style.use('default')
+        bar_color = "#4C72B0"
+        edge_color = "white"
+
     fig, ax = plt.subplots(figsize=(8, 5))
-    bars = ax.bar(names, totals, color="#4C72B0", edgecolor="white", width=0.5)
+    bars = ax.bar(names, totals, color=bar_color, edgecolor=edge_color, width=0.5)
     ax.bar_label(bars, padding=4, fontsize=10)
     ax.set_title("Vaccines Dispatched per Vaccine", fontsize=14, fontweight="bold")
     ax.set_xlabel("Vaccine Name", fontsize=11)
     ax.set_ylabel("Total Vials Dispatched", fontsize=11)
-    ax.spines[["top", "right"]].set_visible(False)
+    
+    if theme != "Dark":
+        ax.spines[["top", "right"]].set_visible(False)
+    
     plt.tight_layout()
     plt.show()
 

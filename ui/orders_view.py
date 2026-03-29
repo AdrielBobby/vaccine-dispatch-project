@@ -61,7 +61,7 @@ class NewOrderDialog(ctk.CTkToplevel):
         self.conn = conn
         self.refresh_callback = refresh_callback
         self.title("Place New Order")
-        self.geometry("420x450")
+        self.geometry("420x550")
         self.after(10, self.grab_set)
 
         # Fetch vaccines for dropdown
@@ -96,19 +96,18 @@ class NewOrderDialog(ctk.CTkToplevel):
 
     def save(self):
         try:
-            o_id = int(self.e_id.get())
-            qty = int(self.e_qty.get())
+            o_id_str = self.e_id.get()
+            qty_str = self.e_qty.get()
             hos = self.e_hos.get()
             state = self.e_state.get()
-            
             selected_vac = self.e_vac.get()
-            if not selected_vac:
-                raise ValueError("Please select a vaccine")
-            
-            v_id = int(selected_vac.split("ID: ")[1].rstrip(")"))
 
-            if not hos or not state:
-                raise ValueError("Fields cannot be empty")
+            if not o_id_str or not qty_str or not hos or not state or not selected_vac:
+                raise ValueError("All fields are required")
+
+            o_id = int(o_id_str)
+            qty = int(qty_str)
+            v_id = int(selected_vac.split("ID: ")[1].rstrip(")"))
 
             success, msg = place_order_direct(self.conn, o_id, v_id, qty, hos, state)
             if success:
@@ -126,7 +125,7 @@ class EditOrderDialog(ctk.CTkToplevel):
         self.o_id = values[0]
         self.refresh_callback = refresh_callback
         self.title(f"Edit Order - ID: {self.o_id}")
-        self.geometry("420x450")
+        self.geometry("420x520")
         self.after(10, self.grab_set)
 
         self.vaccines = get_all_vaccines(self.conn)
@@ -166,14 +165,16 @@ class EditOrderDialog(ctk.CTkToplevel):
 
     def save(self):
         try:
-            qty = int(self.e_qty.get())
+            qty_str = self.e_qty.get()
             hos = self.e_hos.get()
             state = self.e_state.get()
             selected_vac = self.e_vac.get()
-            v_id = int(selected_vac.split("ID: ")[1].rstrip(")"))
 
-            if not hos or not state:
-                raise ValueError("Fields cannot be empty")
+            if not qty_str or not hos or not state or not selected_vac:
+                raise ValueError("All fields are required")
+
+            qty = int(qty_str)
+            v_id = int(selected_vac.split("ID: ")[1].rstrip(")"))
 
             success, msg = update_order_direct(self.conn, self.o_id, v_id, qty, hos, state)
             if success:

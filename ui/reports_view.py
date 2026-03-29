@@ -23,7 +23,7 @@ class ReportsFrame(ctk.CTkFrame):
         self.btn_pending = ctk.CTkButton(self.tab_frame, text="Pending Orders", width=120, command=self.show_pending)
         self.btn_pending.pack(side="left", padx=5)
         
-        self.btn_graph = ctk.CTkButton(self.tab_frame, text="Show Graph", width=120, command=lambda: dispatch_graph(self.conn))
+        self.btn_graph = ctk.CTkButton(self.tab_frame, text="Show Graph", width=120, command=self.open_graph)
         self.btn_graph.pack(side="left", padx=5)
 
         # Content area for reports
@@ -34,7 +34,11 @@ class ReportsFrame(ctk.CTkFrame):
         self.content_label.pack(fill="both", expand=True, padx=20, pady=20)
 
     def on_theme_change(self, mode):
-        pass # CTK labels inside ScrollableFrame handle themselves
+        self.current_mode = mode
+
+    def open_graph(self):
+        mode = getattr(self, "current_mode", "Light")
+        dispatch_graph(self.conn, theme=mode)
 
     def refresh(self):
         self.show_sales()
