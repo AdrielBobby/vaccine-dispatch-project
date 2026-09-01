@@ -93,7 +93,7 @@ python main.py
 
 The admin key to add vaccines is: `BIOpharmAdMiN`
 
-> ⚠️ In production, store this securely (e.g., hashed in the DB), never hardcode it.
+
 
 ---
 
