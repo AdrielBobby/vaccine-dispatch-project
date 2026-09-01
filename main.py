@@ -6,6 +6,9 @@ Entry point. Run with:  python main.py
 
 from dotenv import load_dotenv
 import os
+import sys
+
+sys.stdout.reconfigure(encoding="utf-8")
 
 from db.setup import initialize_db
 from db.connection import get_connection
